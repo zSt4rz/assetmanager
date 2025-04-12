@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 
 # Load YOLO config, weights, and class names
-net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-with open("coco.names", "r") as f:
+net = cv2.dnn.readNet("scripts/yolov3.cfg", "scripts/yolov3.weights")
+with open("scripts/coco.names", "r") as f:
     classes = f.read().strip().split("\n")
 
 # Load image
-image = cv2.imread("coffeeontable.jpg")
+image = cv2.imread("scripts/coffeeontable.jpg")
 height, width = image.shape[:2]
 
 # Convert image to blob for YOLO
