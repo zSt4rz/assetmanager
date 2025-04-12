@@ -1,7 +1,22 @@
 'use client';
-import {useState} from 'react'
+import { useState, useEffect } from 'react'
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Providers from './providers';
 
 export default function Home() {
+  // Check if user is signed into a session
+  // If not, return them to /login
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/signup') // or redirect somewhere else
+    }
+  }, [status, router])
+
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [response, setResponse] = useState("");
