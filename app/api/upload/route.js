@@ -43,15 +43,15 @@ export async function POST(req) {
 
   try {
     const keywordsJson = await mockKeywordAnalysis(filepath)
-
+  
     await connectDB()
-
+  
     const user = await User.findOne({ email: session.user.email })
     if (!user) {
-      console.log("user not found");
-      return new Response('User not found', { status: 404 })
+      console.log("user not found")
+      return Response.json({ error: 'User not found' }, { status: 404 })
     }
-
+  
     await User.findByIdAndUpdate(user._id, {
       $push: {
         assets: {
@@ -61,12 +61,12 @@ export async function POST(req) {
         },
       },
     })
-
+  
     return Response.json({ message: 'Image uploaded and analyzed.', file: filePath, keywordsJson })
-
+    
   } catch (error) {
     console.error('Error during processing:', error)
-    return new Response('Internal Server Error', { status: 500 })
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
 
