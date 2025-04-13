@@ -4,14 +4,14 @@ import Providers from './providers'
 import NavBar from './ui/navbar'
 
 export const metadata = {
-  title: 'My App',
+  title: 'MetaVault',
   description: 'Auth demo',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className="overflow-x-hidden">
         <NavBar></NavBar>
         <Providers>{children}</Providers>
       </body>
