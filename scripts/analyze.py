@@ -1,77 +1,61 @@
-import cv2
-import numpy as np
-import json
 import os
-from collections import defaultdict
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
 
-# Load YOLO config, weights, and class names
-net = cv2.dnn.readNet("scripts/yolov3.cfg", "scripts/yolov3.weights")
-with open("scripts/coco.names", "r") as f:
-    classes = f.read().strip().split("\n")
+# Load environment variables
+load_dotenv()
 
-# Load image
-image = cv2.imread("scripts/livingroom.png")
-height, width = image.shape[:2]
+def analyze_image(image_path: str):
+    """Analyzes an image and returns a list of items with counts"""
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    
+    try:
+        # Upload the image
+        files = [client.files.upload(file=image_path)]
+        
+        # Model configuration
+        model = "gemini-2.0-flash-thinking-exp-01-21"
+        prompt = """List every distinct item in this image and their counts. If items are close enough together in the same category, just group them together, such as chess pieces and billiard balls; make sure after you group them together, you still provide the amount of items of that group there is
+Format exactly like this:
+- Item 1: X
+- Item 2: Y
+Include only the list, no explanations or additional text."""
+        
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_uri(
+                        file_uri=files[0].uri,
+                        mime_type=files[0].mime_type
+                    ),
+                    types.Part(text=prompt)  # Changed from from_text()
+                ]
+            )
+        ]
+        
+        # Get the analysis
+        print(f"Analyzing {image_path}...\n")
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=types.GenerateContentConfig(response_mime_type="text/plain")
+        )
+        
+        print("Items found:")
+        print(response.text)
+    
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        if 'files' in locals():
+            for file in files:
+                try:
+                    client.files.delete(file.id)
+                except:
+                    pass
 
-# Convert image to blob for YOLO
-blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
-net.setInput(blob)
-
-# Get layer names for output
-layer_names = net.getLayerNames()
-output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers().flatten()]
-
-# Forward pass
-outputs = net.forward(output_layers)
-
-# Parse outputs
-boxes, confidences, class_ids = [], [], []
-confidence_threshold = 0.5
-nms_threshold = 0.4
-
-for output in outputs:
-    for detection in output:
-        scores = detection[5:]
-        class_id = np.argmax(scores)
-        confidence = scores[class_id]
-        if confidence > confidence_threshold:
-            center_x = int(detection[0] * width)
-            center_y = int(detection[1] * height)
-            w = int(detection[2] * width)
-            h = int(detection[3] * height)
-            x = int(center_x - w / 2)
-            y = int(center_y - h / 2)
-            boxes.append([x, y, w, h])
-            confidences.append(float(confidence))
-            class_ids.append(class_id)
-
-# Apply Non-Maximum Suppression to reduce overlapping boxes
-indexes = cv2.dnn.NMSBoxes(boxes, confidences, confidence_threshold, nms_threshold)
-
-from collections import defaultdict
-
-# Initialize dictionary to store label counts
-label_counts = defaultdict(int)
-
-# Draw boxes
-for i in indexes.flatten():
-    x, y, w, h = boxes[i]
-    label = str(classes[class_ids[i]])
-    confidence = confidences[i]
-    color = (0, 255, 0)  # Green
-
-    label_counts[label] += 1
-    cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-    cv2.putText(image, f"{label} {confidence:.2f}", (x, y - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-
-print("Detected object counts:")
-for label, count in label_counts.items():
-    print(f"{label}: {count}")
-
-with open("scripts/detected_counts.json", "w") as json_file:
-    json.dump(label_counts, json_file, indent=4)
-# Show or save the result
-cv2.imshow("YOLO Object Detection", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    # Change this to your image path
+    image_path = "scripts/livingroom.png"  
+    analyze_image(image_path)
