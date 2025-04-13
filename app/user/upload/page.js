@@ -1,52 +1,119 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-export default function Page() {
+import { useState } from 'react'
 
+export default function UploadAndAnalyzePage({ userId }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [imageUrl, setImageUrl] = useState(null)
-  const [response, setResponse] = useState("")
+  const [keywordsJson, setKeywordsJson] = useState({})
+  const [selectedKeywords, setSelectedKeywords] = useState([])
+  const [stage, setStage] = useState('upload')
 
-  // // Return Blank HTML element while loading
-  // if (status === 'loading') return <p>Loading...</p>
-  // if (!session) return null // Retrun so the page doesn't load if user isn't logged In
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setSelectedFile(file)
+    setImageUrl(URL.createObjectURL(file))
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!selectedFile) return
-
+  const handleUpload = async () => {
     const formData = new FormData()
-    formData.append("file", selectedFile)
-    formData.append("userId", session.user.id)
+    formData.append('file', selectedFile)
+    formData.append('userId', userId)
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
+    const res = await fetch('/api/upload', {
+      method: 'POST',
       body: formData,
     })
 
     const data = await res.json()
-    setResponse(data.message)
+    setKeywordsJson(data.keywordsJson || {})
+    setSelectedKeywords(Object.keys(data.keywordsJson || {}))
+    setStage('review')
+  }
+
+  const toggleKeyword = (word) => {
+    setSelectedKeywords((prev) =>
+      prev.includes(word) ? prev.filter((w) => w !== word) : [...prev, word]
+    )
+  }
+
+  const handleAdd = async () => {
+    await fetch('/api/finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        file: imageUrl,
+        keywordsJson,
+        selectedKeywords,
+      }),
+    })
+
+    // Reset everything
+    setSelectedFile(null)
+    setImageUrl(null)
+    setKeywordsJson({})
+    setSelectedKeywords([])
+    setStage('upload')
+  }
+
+  const handleCancel = () => {
+    setSelectedFile(null)
+    setImageUrl(null)
+    setKeywordsJson({})
+    setSelectedKeywords([])
+    setStage('upload')
   }
 
   return (
-    <main className="h-screen text-gray-200 bg-orange-100 flex flex-col items-center justify-center p-6">
-        <div className="py-10 gap-y-4 flex flex-col items-center w-[80%] h-[70%] bg-gray-200 shadow-xl rounded-2xl shadow-gray-700">
-            <img src={imageUrl} className="w-64 h-auto"/>
-            <form onSubmit={handleSubmit}>
-                <input className="w-64 px-1 py-2 bg-green-950 hover:bg-green-900 rounded-2xl"
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    setSelectedFile(file || null);
-                    if (file) setImageUrl(URL.createObjectURL(file));
-                }}
+    <div className="p-6 space-y-4 max-w-md mx-auto">
+      {stage === 'upload' && (
+        <>
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+          {selectedFile && (
+            <button
+              onClick={handleUpload}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Upload & Analyze
+            </button>
+          )}
+        </>
+      )}
+
+      {stage === 'review' && imageUrl && (
+        <>
+          <img src={imageUrl} alt="Uploaded" className="w-full rounded" />
+          <h2 className="text-lg font-semibold">Detected Items</h2>
+          <div className="space-y-1">
+            {Object.keys(keywordsJson).map((word) => (
+              <label key={word} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selectedKeywords.includes(word)}
+                  onChange={() => toggleKeyword(word)}
                 />
-                <button type="submit" className="bg-green-950 hover:bg-green-900 px-4 py-2 rounded-2xl">Analyze Photo</button>
-            </form>
-        </div>
-      
-      {response && <p className="mt-4">{response}</p>}
-    </main>
-  );
+                <span>{word}</span>
+              </label>
+            ))}
+          </div>
+          <div className="flex space-x-4 mt-4">
+            <button
+              onClick={handleAdd}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Add
+            </button>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-400 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
