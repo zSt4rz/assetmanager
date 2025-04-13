@@ -46,7 +46,7 @@ export default function InventoryPage() {
               <h2 className="font-semibold mt-2">Items</h2>
               <ul className="list-disc pl-5">
                 {Object.entries(image.selectedKeywords || {}).map(([key, val]) => (
-                  <li key={key}>{key} (x{val})</li>
+                  <li key={key}>({val})</li>
                 ))}
               </ul>
             </div>
