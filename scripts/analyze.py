@@ -36,7 +36,7 @@ def analyze_image(image_path: str) -> dict:
         
         # Model configuration
         model = "gemini-2.0-flash-thinking-exp-01-21"
-        prompt = """List every distinct item in this image and their counts. If items are close enough together in the same category, just group them together, such as chess pieces and billiard balls; make sure after you group them together, you still provide the amount of items of that group there is
+        prompt = """List every distinct item in this image and their counts. If items are close enough together in the same category, just group them together, such as chess pieces and billiard balls; make sure after you group them together, you still provide the amount of items of that group there is. DO NOT INCLUDE ANY PEOPLE IN THE LIST OF ITEMS
 Format exactly like this:
 - Item 1: X
 - Item 2: Y
@@ -57,21 +57,19 @@ At the end, say exactly this: Perfect! A [List all the items that were added, no
         ]
         
         # Get the analysis
-        print(f"Analyzing {image_path}...\n")
+        
         response = client.models.generate_content(
             model=model,
             contents=contents,
             config=types.GenerateContentConfig(response_mime_type="text/plain")
         )
         
-        print("Raw response:")
-        print(response.text)
+
         
         # Convert response to dictionary
         items_dict = parse_response_to_dict(response.text)
         
-        print("\nItems dictionary:")
-        print(items_dict)
+        print(json.dumps(items_dict))
         
         return items_dict
     
@@ -87,13 +85,7 @@ At the end, say exactly this: Perfect! A [List all the items that were added, no
 
 if __name__ == "__main__":
     # Change this to your image path
-    image_path = "scripts/livingroom.png"  
+    image_path = "scripts/image.jpg"  
     result_dict = analyze_image(image_path)
+
     
-    # Example of how to use the dictionary
-    print("\nExample usage:")
-    for item, count in result_dict.items():
-        print(f"There are {count} {item}(s) in the image")
-    
-    with open("scripts/detected_counts.json", "w") as json_file:
-        json.dump(result_dict, json_file, indent=4)

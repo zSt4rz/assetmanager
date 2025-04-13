@@ -1,4 +1,3 @@
-// /app/api/upload/route.js
 import { writeFile, mkdir } from 'fs/promises'
 import fs from 'fs'
 import path from 'path'
@@ -6,6 +5,8 @@ import { connectDB } from '@/lib/mongoose'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { exec } from 'child_process'
+import util from 'util'
 
 export async function POST(req) {
   const session = await getServerSession(authOptions)
@@ -22,8 +23,8 @@ export async function POST(req) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())
-  const uploadDir = path.join(process.cwd(), 'public/uploads')
-  const filename = Date.now() + '-' + file.name
+  const uploadDir = path.join(process.cwd(), 'scripts')
+  const filename = 'image.jpg' // Static filename
   const filepath = path.join(uploadDir, filename)
 
   // Ensure upload folder exists
@@ -31,37 +32,62 @@ export async function POST(req) {
     await mkdir(uploadDir, { recursive: true })
   }
 
-  await writeFile(filepath, buffer)
-  const filePath = `/uploads/${filename}`
-
-  const keywordsJson = await mockKeywordAnalysis(filepath)
-
-  await connectDB()
-
-  const user = await User.findOne({ email: session.user.email })
-  if (!user) {
-    console.log("user not found");
-    return new Response('User not found', { status: 404 })
+  // Delete existing image if it exists
+  if (fs.existsSync(filepath)) {
+    await fs.promises.unlink(filepath)
   }
 
-  await User.findByIdAndUpdate(user._id, {
-    $push: {
-      assets: {
-        file: filePath,
-        keywordsJson,
-        uploadedAt: new Date(),
-      },
-    },
-  })
+  await writeFile(filepath, buffer)
+  const filePath = `/uploads/${filename}`
+  const execPromise = util.promisify(exec)
 
-  return Response.json({ message: 'Image uploaded and analyzed.', file: filePath, keywordsJson })
+  try {
+    const keywordsJson = await mockKeywordAnalysis(filepath)
+
+    await connectDB()
+
+    const user = await User.findOne({ email: session.user.email })
+    if (!user) {
+      console.log("user not found");
+      return new Response('User not found', { status: 404 })
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+      $push: {
+        assets: {
+          file: filePath,
+          keywordsJson,
+          uploadedAt: new Date(),
+        },
+      },
+    })
+
+    return Response.json({ message: 'Image uploaded and analyzed.', file: filePath, keywordsJson })
+
+  } catch (error) {
+    console.error('Error during processing:', error)
+    return new Response('Internal Server Error', { status: 500 })
+  }
 }
 
 async function mockKeywordAnalysis(filepath) {
-  return {
-    cat: 1,
-    street: 1,
-    grass: 2,
-    person: 1,
+  const execPromise = util.promisify(exec)
+
+  try {
+    // Ensure the script path is correct
+    const scriptPath = path.resolve(process.cwd(), 'scripts/analyze.py')
+    const { stdout, stderr } = await execPromise(`python3 ${scriptPath} ${filepath}`)
+
+    if (stderr) {
+      console.error('Error from Python script:', stderr)
+      throw new Error('Error running Python script')
+    }
+
+    // Assuming the Python script returns JSON output with keyword analysis
+    const keywordsJson = JSON.parse(stdout)
+    return keywordsJson
+  } catch (error) {
+    console.error('Error during keyword analysis:', error)
+    throw error
   }
 }

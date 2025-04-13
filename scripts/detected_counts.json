@@ -1,20 +1,7 @@
 {
-    "Windows": 3,
-    "Blinds": 3,
-    "Couch": 1,
-    "Pillows": 2,
-    "Chairs": 2,
-    "Coffee Table": 1,
-    "Books": 3,
-    "Bowl": 1,
-    "Plants": 4,
-    "Plant Pots": 4,
-    "Rug": 1,
-    "Fireplace": 1,
-    "Mantel": 1,
-    "Map": 1,
-    "Cabinet": 1,
-    "Sconce": 1,
-    "Door": 1,
-    "Ceiling Molding": 1
+    "Coffee cups": 2,
+    "Coffee": 2,
+    "Table": 1,
+    "People": 3,
+    "Chairs": 4
 }
