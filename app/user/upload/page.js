@@ -55,7 +55,7 @@ export default function UploadAndAnalyzePage({ userId }) {
     }
   
     const base64 = await getBase64(selectedFile)
-  
+
     await fetch('/api/finalize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -29,20 +29,14 @@ export async function POST(req) {
   if (!user) {
     return new Response('User not found', { status: 404 })
   }
-
-  // Add selected keywords to user's list
-  await User.updateOne(
-    { _id: user._id },
-    { $addToSet: { selectedKeywords: { $each: selectedKeywords } } }
-  )
-
+  
   // Add finalized image to uploadedImages with base64 content
   await User.findByIdAndUpdate(user._id, {
     $push: {
       uploadedImages: {
         data: base64,
         contentType,
-        keywordsJson,
+        selectedKeywords,
         uploadedAt: new Date(),
       },
     },
