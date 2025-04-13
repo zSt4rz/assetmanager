@@ -1,63 +1,13 @@
-'use client'
+import React from "react"
 
-import { useState, useEffect } from 'react'
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-
-export default function Home() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [imageUrl, setImageUrl] = useState(null)
-  const [response, setResponse] = useState("")
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status])
-
-  // Return Blank HTML element while loading
-  if (status === 'loading') return <p>Loading...</p>
-  if (!session) return null // Retrun so the page doesn't load if user isn't logged In
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!selectedFile) return
-
-    const formData = new FormData()
-    formData.append("file", selectedFile)
-    formData.append("userId", session.user.id)
-
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    })
-
-    const data = await res.json()
-    setResponse(data.message)
-  }
-
+export default async function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">Upload Image for Analysis</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            setSelectedFile(file || null)
-            if (file) setImageUrl(URL.createObjectURL(file))
-          }}
-        />
-        {imageUrl && <img src={imageUrl} alt="Preview" className="w-64 h-auto" />}
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-          Upload and Analyze
-        </button>
-      </form>
-      {response && <p className="mt-4">{response}</p>}
+    <main className="min-h-screen bg-orange-100 flex justify-center items-center">
+      <div className="text-amber-950 text-8xl">
+        <h1 className="text-8xl">ASSET</h1>
+        <h1 className="italic text-9xl">MANAGER</h1>
+      </div>
     </main>
   )
+
 }
