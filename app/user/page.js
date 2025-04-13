@@ -8,24 +8,19 @@ import { useRouter } from "next/navigation";
 export default function Page() {
     // Check if user is signed into a session
     //   If not, return them to /login
-    //   const { data: session, status } = useSession();
-    //   const router = useRouter();
+      const { data: session, status } = useSession();
+      const router = useRouter();
       
-    //   useEffect(() => {
-    //     if (status === 'unauthenticated') {
-    //       router.push('/login') // or redirect somewhere else
-    //     }
-    //   }, [status, router])
-
-      // // Return Blank HTML element while loading
-//   if (status === 'loading') return (<main className="h-screen bg-orange-100"></main>)
-//   if (!session) return null // Retrun so the page doesn't load if user isn't logged In
-
       useEffect(() => {
         if (status === 'unauthenticated') {
           router.push('/login') // or redirect somewhere else
         }
       }, [status, router])
+
+      // Return Blank HTML element while loading
+    if (status === 'loading') return (<main className="h-screen bg-orange-100"></main>)
+    if (!session) return null // Retrun so the page doesn't load if user isn't logged In
+
       
 
     return (
