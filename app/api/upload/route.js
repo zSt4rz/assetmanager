@@ -90,7 +90,7 @@ async function mockKeywordAnalysis(filepath) {
 
     // Assuming the Python script returns JSON output with keyword analysis
     const keywordsJson = JSON.parse(stdout)
-    
+
     return keywordsJson
   } catch (error) {
     console.error('Error during keyword analysis:', error)

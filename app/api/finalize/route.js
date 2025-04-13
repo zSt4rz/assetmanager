@@ -16,12 +16,11 @@ export async function POST(req) {
   const body = await req.json()
   const { file, contentType, keywordsJson, selectedKeywords } = body;
 
-  if (!file || !keywordsJson || !Array.isArray(selectedKeywords)) {
+  if (!file || !keywordsJson || !selectedKeywords) {
     return new Response('Missing required fields', { status: 400 })
   }
 
   const base64 = file;
-
 
   await connectDB()
 
