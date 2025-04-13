@@ -33,6 +33,10 @@ body {
 }
 
 .conveyor {
-  animation: conveyor 8s linear infinite;
+  animation: conveyor 12s linear infinite;
   position: absolute;
 }
+
+/* .conveyor-left {
+  animation: conv
+} */
