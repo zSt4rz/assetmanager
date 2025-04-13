@@ -10,6 +10,7 @@ export default function InventoryPage() {
 
   const [images, setImages] = useState([])
 
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
