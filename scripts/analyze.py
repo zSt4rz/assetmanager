@@ -41,7 +41,7 @@ Format exactly like this:
 - Item 1: Price of Item 1
 - Item 2: Price of Item 2
 
-Give a rough estimate of the prices of the items in the image, if possible. If you can't estimate the price, just say "unknown".
+Give a rough estimate of the prices of the items in the image, if possible. If you can't estimate the price, just say "0".  DO NOT PUT THE $ SIGN IN FRONT OF THE PRICE.
 Include only the list, no explanations or additional text.
 At the end, say exactly this: Perfect! A [List all the items that were added, not the amount that were added] were added to your inventory. """
         
