@@ -1,53 +1,53 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState(null)
   const router = useRouter()
 
-  const handleLogin = async (e) => {
+  async function handleLogin(e) {
     e.preventDefault()
+
     const res = await signIn('credentials', {
       redirect: false,
       email,
       password,
     })
 
-    if (res.ok) {
-      router.push('/dashboard') // or wherever you want
+    if (res.ok && !res.error) {
+      router.push('/') // or '/dashboard'
     } else {
-      alert('Login failed.')
+      setError('Invalid email or password')
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-80 space-y-4">
-        <h2 className="text-xl font-semibold">Login</h2>
+        <h2 className="text-xl font-bold">Login</h2>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         <input
           type="email"
           placeholder="Email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
           className="w-full border border-gray-300 p-2 rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Password"
-          value={password}
-          required
-          onChange={(e) => setPassword(e.target.value)}
           className="w-full border border-gray-300 p-2 rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
+        <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
           Login
         </button>
       </form>

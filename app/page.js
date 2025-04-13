@@ -1,41 +1,43 @@
-'use client';
+'use client'
+
 import { useState, useEffect } from 'react'
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Providers from './providers';
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
-  // Check if user is signed into a session
-  // If not, return them to /login
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [imageUrl, setImageUrl] = useState(null)
+  const [response, setResponse] = useState("")
+
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/signup') // or redirect somewhere else
+      router.push('/login')
     }
-  }, [status, router])
+  }, [status])
 
-
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [response, setResponse] = useState("");
+  // Return Blank HTML element while loading
+  if (status === 'loading') return <p>Loading...</p>
+  if (!session) return null // Retrun so the page doesn't load if user isn't logged In
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedFile) return;
+    e.preventDefault()
+    if (!selectedFile) return
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
+    const formData = new FormData()
+    formData.append("file", selectedFile)
+    formData.append("userId", session.user.id)
 
     const res = await fetch("/api/upload", {
       method: "POST",
       body: formData,
-    });
+    })
 
-    const data = await res.json();
-    setResponse(data.message);
-  };
+    const data = await res.json()
+    setResponse(data.message)
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100">
@@ -45,9 +47,9 @@ export default function Home() {
           type="file"
           accept="image/*"
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            setSelectedFile(file || null);
-            if (file) setImageUrl(URL.createObjectURL(file));
+            const file = e.target.files?.[0]
+            setSelectedFile(file || null)
+            if (file) setImageUrl(URL.createObjectURL(file))
           }}
         />
         {imageUrl && <img src={imageUrl} alt="Preview" className="w-64 h-auto" />}
@@ -57,5 +59,5 @@ export default function Home() {
       </form>
       {response && <p className="mt-4">{response}</p>}
     </main>
-  );
+  )
 }
