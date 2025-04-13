@@ -5,7 +5,6 @@ import { connectDB } from '@/lib/mongoose'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import fetch from 'node-fetch'
 
 export async function POST(req) {
   const session = await getServerSession(authOptions)
