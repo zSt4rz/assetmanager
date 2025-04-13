@@ -67,16 +67,18 @@ export default function UploadAndAnalyzePage({ userId }) {
   }
 
   return (
-    <div className="p-6 space-y-4 max-w-md mx-auto">
+    <main className="h-screen bg-orange-100 text-amber-950 flex items-center justify-center">
+
+    <div className="mt-12 p-6 space-y-4 bg-white shadow-2xl rounded-2xl">
       {stage === 'upload' && (
         <>
           <input type="file" accept="image/*" onChange={handleFileChange} />
           {selectedFile && (
             <button
               onClick={handleUpload}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-green-900 hover:bg-green-950 hover:cursor-pointer text-white px-4 py-2 rounded-2xl"
             >
-              Upload & Analyze
+              Analyze
             </button>
           )}
         </>
@@ -84,7 +86,7 @@ export default function UploadAndAnalyzePage({ userId }) {
 
       {stage === 'review' && imageUrl && (
         <>
-          <img src={imageUrl} alt="Uploaded" className="w-full rounded" />
+          <img src={imageUrl} alt="Uploaded" className="h-80 rounded" />
           <h2 className="text-lg font-semibold">Detected Items</h2>
           <div className="space-y-1">
             {Object.keys(keywordsJson).map((word) => (
@@ -101,13 +103,13 @@ export default function UploadAndAnalyzePage({ userId }) {
           <div className="flex space-x-4 mt-4">
             <button
               onClick={handleAdd}
-              className="bg-green-600 text-white px-4 py-2 rounded"
+              className="hover:cursor-pointer bg-green-900 hover:bg-green-950 text-white px-4 py-2 rounded-2xl"
             >
               Add
             </button>
             <button
               onClick={handleCancel}
-              className="bg-gray-400 text-white px-4 py-2 rounded"
+              className="hover:cursor-pointer bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-2xl"
             >
               Cancel
             </button>
@@ -115,5 +117,6 @@ export default function UploadAndAnalyzePage({ userId }) {
         </>
       )}
     </div>
+    </main>
   )
 }
