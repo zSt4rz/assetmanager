@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import json
+import os
+from collections import defaultdict
 
 # Load YOLO config, weights, and class names
 net = cv2.dnn.readNet("scripts/yolov3.cfg", "scripts/yolov3.weights")
@@ -7,7 +10,7 @@ with open("scripts/coco.names", "r") as f:
     classes = f.read().strip().split("\n")
 
 # Load image
-image = cv2.imread("scripts/coffeeontable.jpg")
+image = cv2.imread("scripts/livingroom.png")
 height, width = image.shape[:2]
 
 # Convert image to blob for YOLO
@@ -45,16 +48,29 @@ for output in outputs:
 # Apply Non-Maximum Suppression to reduce overlapping boxes
 indexes = cv2.dnn.NMSBoxes(boxes, confidences, confidence_threshold, nms_threshold)
 
+from collections import defaultdict
+
+# Initialize dictionary to store label counts
+label_counts = defaultdict(int)
+
 # Draw boxes
 for i in indexes.flatten():
     x, y, w, h = boxes[i]
     label = str(classes[class_ids[i]])
     confidence = confidences[i]
     color = (0, 255, 0)  # Green
+
+    label_counts[label] += 1
     cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
     cv2.putText(image, f"{label} {confidence:.2f}", (x, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
+print("Detected object counts:")
+for label, count in label_counts.items():
+    print(f"{label}: {count}")
+
+with open("scripts/detected_counts.json", "w") as json_file:
+    json.dump(label_counts, json_file, indent=4)
 # Show or save the result
 cv2.imshow("YOLO Object Detection", image)
 cv2.waitKey(0)
