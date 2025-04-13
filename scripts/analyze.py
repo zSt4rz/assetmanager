@@ -40,7 +40,8 @@ def analyze_image(image_path: str) -> dict:
 Format exactly like this:
 - Item 1: X
 - Item 2: Y
-Include only the list, no explanations or additional text."""
+Include only the list, no explanations or additional text.
+At the end, say exactly this: Perfect! A [List all the items that were added, not the amount that were added] were added to your inventory. """
         
         contents = [
             types.Content(
