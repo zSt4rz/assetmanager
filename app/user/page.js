@@ -16,6 +16,7 @@ export default function Page() {
           router.push('/login') // or redirect somewhere else
         }
       }, [status, router])
+      
 
     return (
         <main className="h-screen bg-orange-100 text-amber-950 px-4">
