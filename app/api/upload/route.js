@@ -76,7 +76,12 @@ async function mockKeywordAnalysis(filepath) {
   try {
     // Ensure the script path is correct
     const scriptPath = path.resolve(process.cwd(), 'scripts/analyze.py')
-    const { stdout, stderr } = await execPromise(`python3 ${scriptPath} ${filepath}`)
+
+    const isWindows = process.platform === 'win32'
+    const pythonCmd = isWindows ? 'python' : 'python3'
+
+
+    const { stdout, stderr } = await execPromise(`${pythonCmd} ${scriptPath} ${filepath}`)
 
     if (stderr) {
       console.error('Error from Python script:', stderr)
@@ -85,6 +90,7 @@ async function mockKeywordAnalysis(filepath) {
 
     // Assuming the Python script returns JSON output with keyword analysis
     const keywordsJson = JSON.parse(stdout)
+    console.log(keywordsJson);
     return keywordsJson
   } catch (error) {
     console.error('Error during keyword analysis:', error)

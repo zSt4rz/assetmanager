@@ -39,18 +39,34 @@ export default function UploadAndAnalyzePage({ userId }) {
   }
 
   const handleAdd = async () => {
+    if (!selectedFile) return
+  
+    // Convert Blob to base64
+    const getBase64 = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1] // Strip off data:image/...;base64,
+          resolve(base64)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+    }
+  
+    const base64 = await getBase64(selectedFile)
+  
     await fetch('/api/finalize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId,
-        file: imageUrl,
+        file: base64, // ✅ Actual base64 string
         keywordsJson,
         selectedKeywords,
       }),
     })
-
-    // Reset everything
+  
+    // Reset
     setSelectedFile(null)
     setImageUrl(null)
     setKeywordsJson({})
