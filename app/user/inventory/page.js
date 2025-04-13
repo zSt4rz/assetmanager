@@ -10,8 +10,6 @@ export default function InventoryPage() {
 
   const [images, setImages] = useState([])
 
-  
-
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
@@ -55,7 +53,7 @@ export default function InventoryPage() {
                 <ul className="list-disc pl-5">
                   {Object.entries(image.selectedKeywords || {}).map(([key, val]) => (
                     <li key={key}>
-                      {key} (${val})
+                      {key} ({"$"}{val})
                     </li>
                   ))}
                 </ul>
