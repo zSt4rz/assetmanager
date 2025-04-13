@@ -15,6 +15,7 @@ export default function InventoryPage() {
       router.push('/login')
     } else if (status === 'authenticated') {
       fetchInventory()
+      
     }
   }, [status])
 
