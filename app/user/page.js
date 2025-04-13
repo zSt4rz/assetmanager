@@ -21,8 +21,6 @@ export default function Page() {
     if (status === 'loading') return (<main className="h-screen bg-orange-100"></main>)
     if (!session) return null // Retrun so the page doesn't load if user isn't logged In
 
-      
-
     return (
         <main className="h-screen bg-orange-100 text-amber-950 px-4">
             <h1 className="pt-24 text-7xl italic">
