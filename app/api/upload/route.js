@@ -5,8 +5,7 @@ import { connectDB } from '@/lib/mongoose'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { exec } from 'child_process'
-import util from 'util'
+import fetch from 'node-fetch'
 
 export async function POST(req) {
   const session = await getServerSession(authOptions)
@@ -24,34 +23,31 @@ export async function POST(req) {
 
   const buffer = Buffer.from(await file.arrayBuffer())
   const uploadDir = path.join(process.cwd(), 'scripts')
-  const filename = 'image.jpg' // Static filename
+  const filename = 'image.jpg'
   const filepath = path.join(uploadDir, filename)
 
-  // Ensure upload folder exists
   if (!fs.existsSync(uploadDir)) {
     await mkdir(uploadDir, { recursive: true })
   }
 
-  // Delete existing image if it exists
   if (fs.existsSync(filepath)) {
     await fs.promises.unlink(filepath)
   }
 
   await writeFile(filepath, buffer)
   const filePath = `/uploads/${filename}`
-  const execPromise = util.promisify(exec)
 
   try {
-    const keywordsJson = await mockKeywordAnalysis(filepath)
-  
+    const keywordsJson = await analyzeWithFlask(filepath)
+
     await connectDB()
-  
+
     const user = await User.findOne({ email: session.user.email })
     if (!user) {
       console.log("user not found")
       return Response.json({ error: 'User not found' }, { status: 404 })
     }
-  
+
     await User.findByIdAndUpdate(user._id, {
       $push: {
         assets: {
@@ -61,39 +57,28 @@ export async function POST(req) {
         },
       },
     })
-  
+
     return Response.json({ message: 'Image uploaded and analyzed.', file: filePath, keywordsJson })
-    
+
   } catch (error) {
     console.error('Error during processing:', error)
     return Response.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
 
-async function mockKeywordAnalysis(filepath) {
-  const execPromise = util.promisify(exec)
+async function analyzeWithFlask(filepath) {
+  const formData = new FormData()
+  formData.append('file', new Blob([await fs.promises.readFile(filepath)]), 'image.jpg')
 
-  try {
-    // Ensure the script path is correct
-    const scriptPath = path.resolve(process.cwd(), 'scripts/analyze.py')
+  const response = await fetch('https://assetmanager-eta.vercel.app/analyze', {
+    method: 'POST',
+    body: formData,
+  })
 
-    const isWindows = process.platform === 'win32'
-    const pythonCmd = isWindows ? 'python' : 'python3'
-
-
-    const { stdout, stderr } = await execPromise(`${pythonCmd} ${scriptPath} ${filepath}`)
-
-    if (stderr) {
-      console.error('Error from Python script:', stderr)
-      throw new Error('Error running Python script')
-    }
-
-    // Assuming the Python script returns JSON output with keyword analysis
-    const keywordsJson = JSON.parse(stdout)
-
-    return keywordsJson
-  } catch (error) {
-    console.error('Error during keyword analysis:', error)
-    throw error
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error('Flask server error: ' + text)
   }
+
+  return await response.json()
 }

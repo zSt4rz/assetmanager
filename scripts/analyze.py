@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify
 import os
 from google import genai
 from google.genai import types
@@ -7,6 +8,10 @@ import json
 # Load environment variables
 load_dotenv()
 
+app = Flask(__name__)
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 def parse_response_to_dict(response_text: str) -> dict:
     """Converts the model's text response into a dictionary"""
     items_dict = {}
@@ -14,14 +19,12 @@ def parse_response_to_dict(response_text: str) -> dict:
     
     for line in lines:
         if line.startswith('-'):
-            # Remove the '- ' prefix and split on ': '
             parts = line[2:].split(': ')
             if len(parts) == 2:
                 item, count = parts
                 try:
                     items_dict[item.strip()] = int(count.strip())
                 except ValueError:
-                    # Handle cases where count isn't a number
                     items_dict[item.strip()] = count.strip()
     return items_dict
 
@@ -33,8 +36,8 @@ def analyze_image(image_path: str) -> dict:
     try:
         # Upload the image
         files = [client.files.upload(file=image_path)]
-        
-        # Model configuration
+
+        # Model config
         model = "gemini-2.0-flash-thinking-exp-01-21"
         prompt = """List every distinct item in this image and their counts. If items are close enough together in the same category, just group them together, such as chess pieces and billiard balls; make sure after you group them together, you still provide the amount of items of that group there is. DO NOT INCLUDE ANY PEOPLE IN THE LIST OF ITEMS
 Format exactly like this:
@@ -57,24 +60,17 @@ At the end, say exactly this: Perfect! A [List all the items that were added, no
                 ]
             )
         ]
-        
-        # Get the analysis
-        
+
         response = client.models.generate_content(
             model=model,
             contents=contents,
             config=types.GenerateContentConfig(response_mime_type="text/plain")
         )
-        
 
-        
-        # Convert response to dictionary
         items_dict = parse_response_to_dict(response.text)
-        
         print(json.dumps(items_dict))
-        
         return items_dict
-    
+
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         if 'files' in locals():
@@ -85,9 +81,23 @@ At the end, say exactly this: Perfect! A [List all the items that were added, no
                     pass
         return {}
 
-if __name__ == "__main__":
-    # Change this to your image path
-    image_path = "scripts/image.jpg"  
-    result_dict = analyze_image(image_path)
+@app.route('/analyze', methods=['POST'])
+def analyze_endpoint():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
 
-    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Empty filename'}), 400
+
+    # Save to temp path
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(filepath)
+
+    result = analyze_image(filepath)
+
+    os.remove(filepath)  # Optional cleanup
+    return jsonify(result)
+
+if __name__ == '__main__':
+    app.run(debug=True)
