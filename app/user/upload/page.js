@@ -83,56 +83,65 @@ export default function UploadAndAnalyzePage({ userId }) {
   }
 
   return (
-    <main className="h-screen bg-orange-100 text-amber-950 flex items-center justify-center">
-
-    <div className="mt-12 p-6 space-y-4 bg-white shadow-2xl rounded-2xl">
-      {stage === 'upload' && (
-        <>
-          <input type="file" accept="image/*" onChange={handleFileChange} />
-          {selectedFile && (
-            <button
-              onClick={handleUpload}
-              className="bg-green-900 hover:bg-green-950 hover:cursor-pointer text-white px-4 py-2 rounded-2xl"
-            >
-              Analyze
-            </button>
-          )}
-        </>
-      )}
-
-      {stage === 'review' && imageUrl && (
-        <>
-          <img src={imageUrl} alt="Uploaded" className="h-80 rounded" />
-          <h2 className="text-lg font-semibold">Detected Items</h2>
-          <div className="space-y-1">
-            {Object.keys(keywordsJson).map((word) => (
-              <label key={word} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selectedKeywords.includes(word)}
-                  onChange={() => toggleKeyword(word)}
-                />
-                <span>{word}</span>
-              </label>
-            ))}
+    <main className="h-screen bg-orange-100 text-amber-950 flex items-center justify-center overflow-hidden">
+      <div className="mt-12 p-6 bg-white shadow-2xl rounded-2xl max-h-[90vh] w-full max-w-4xl overflow-hidden">
+        {stage === 'upload' && (
+          <div className="space-y-4">
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            {selectedFile && (
+              <button
+                onClick={handleUpload}
+                className="bg-green-900 hover:bg-green-950 hover:cursor-pointer text-white px-4 py-2 rounded-2xl"
+              >
+                Analyze
+              </button>
+            )}
           </div>
-          <div className="flex space-x-4 mt-4">
-            <button
-              onClick={handleAdd}
-              className="hover:cursor-pointer bg-green-900 hover:bg-green-950 text-white px-4 py-2 rounded-2xl"
-            >
-              Add
-            </button>
-            <button
-              onClick={handleCancel}
-              className="hover:cursor-pointer bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-2xl"
-            >
-              Cancel
-            </button>
+        )}
+  
+        {stage === 'review' && imageUrl && (
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left: Image */}
+            <div className="flex-1">
+              <img src={imageUrl} alt="Uploaded" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+            </div>
+  
+            {/* Right: Checkboxes */}
+            <div className="flex-1 flex flex-col max-h-[70vh]">
+              <h2 className="text-lg font-semibold mb-2">Detected Items</h2>
+              <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                {Object.keys(keywordsJson).map((word) => (
+                  <label key={word} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedKeywords.includes(word)}
+                      onChange={() => toggleKeyword(word)}
+                    />
+                    <span>{word}</span>
+                  </label>
+                ))}
+              </div>
+  
+              {/* Buttons */}
+              <div className="flex space-x-4 mt-4">
+                <button
+                  onClick={handleAdd}
+                  className="hover:cursor-pointer bg-green-900 hover:bg-green-950 text-white px-4 py-2 rounded-2xl"
+                >
+                  Add
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="hover:cursor-pointer bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-2xl"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
     </main>
   )
+  
 }

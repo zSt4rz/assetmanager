@@ -3,26 +3,32 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import InventoryCard from '@/app/ui/inventorycard'
 
 export default function InventoryPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+
   const [images, setImages] = useState([])
+  const [expandedCardId, setExpandedCardId] = useState(null) // Use unique card ID
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
-    }
-    if (status === 'authenticated') {
+    } else if (status === 'authenticated') {
       fetchInventory()
       
     }
   }, [status])
 
   async function fetchInventory() {
-    const res = await fetch('/api/inventory')
-    const data = await res.json()
-    setImages(data.uploadedImages || [])
+    try {
+      const res = await fetch('/api/inventory')
+      const data = await res.json()
+      setImages(data.uploadedImages || [])
+    } catch (err) {
+      console.error('Failed to fetch inventory:', err)
+    }
   }
 
   if (status === 'loading') return <p>Loading...</p>
