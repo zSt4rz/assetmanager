@@ -15,6 +15,7 @@ export default function InventoryPage() {
     }
     if (status === 'authenticated') {
       fetchInventory()
+      
     }
   }, [status])
 
